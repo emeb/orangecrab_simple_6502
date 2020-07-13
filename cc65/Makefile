@@ -2,7 +2,7 @@
 # 03-04-19 E. Brombaugh
 
 # C and assy source files
-SRC =	main.c acia.s interrupt.s vectors.s
+SRC =	main.c acia.s usb.s interrupt.s vectors.s
 
 # compiler output
 OBJ = rom

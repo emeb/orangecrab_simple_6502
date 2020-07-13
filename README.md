@@ -1,6 +1,11 @@
 # orangecrab_simple_6502
 A very simple 6502 system running on an Orange Crab FPGA board
 
+This demo shows an 8-bit 6502 CPU with modest RAM, ROM and I/O running on
+the Orange Crab V0.2 hardware. It includes enough GPIO to flash the onboard
+RGB LED, a 9600bps serial port on the IO 0 & 1 pins, and a USB device with 
+CDC ACM serial emulation.
+
 ## prerequisites
 To build this you will need the following FPGA tools
 
@@ -26,7 +31,12 @@ Plug the Orange Crab USB in and load the previously built bitstream .
 
 	make prog
 
-The RGB LED should begin flashing a binary sequence.
+If you have a 9600bps serial device connected to IO 0 & 1 you will see a
+short greeting message and the device waits for a connection on the USB
+device. Once USB is connected, send <space> to the USB port and a similar
+greeting will be printed on the USB port, after which the RGB LED should
+begin flashing a binary sequence and text sent from the host to the USB
+port will be echoed on both the USB and serial ports.
 
 ## CPU coding
 

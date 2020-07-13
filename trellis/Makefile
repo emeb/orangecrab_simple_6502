@@ -68,7 +68,7 @@ prog: $(PROJ).dfu
 	sudo dfu-util -D $(PROJ).dfu
 	
 recode:
-	rm -f $(REAL_HEX) $(PROJ).bin
+	rm -f $(REAL_HEX) $(PROJ).bit $(PROJ).dfu
 	$(MAKE) prog
     
 lint: $(SRC)

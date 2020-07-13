@@ -17,23 +17,106 @@ module usb_serial(
 	inout USB_PULLUP,		// USB Pullup
 	output IRQ				// interrupt request
 );
-	// CPU interface to USB pipes
-	assign dout = 8'd0;
+`ifdef LOOPBACK
+	assign dout = 8'h00;
 	
-	// uart pipeline in (out of the device, into the host)
+	// temporary tie the pipes together for loopback
 	wire [7:0] uart_in_data;
 	wire       uart_in_valid;
 	wire      uart_in_ready;
-	
 	// uart pipeline out (into the device, out of the host)
 	wire [7:0] uart_out_data;
 	wire       uart_out_valid;
 	wire        uart_out_ready;
 	
-	// temporary tie the pipes together for loopback
 	assign uart_in_data = uart_out_data;
 	assign uart_in_valid = uart_out_valid;
 	assign uart_out_ready = uart_in_ready;
+`else
+	// CPU interface to USB pipes	
+	// uart pipeline in (out of the device, into the host)
+	reg [7:0] uart_in_data;
+	reg       uart_in_valid;
+	wire      uart_in_ready;
+	// uart pipeline out (into the device, out of the host)
+	wire [7:0] uart_out_data;
+	wire       uart_out_valid;
+	reg        uart_out_ready;
+	
+	// receive from host
+	reg [7:0] rx_data;
+	always @(posedge clk)
+	begin
+		if(rst)
+		begin
+			rx_data <= 8'h00;
+			uart_out_ready <= 1'b1;
+		end
+		else
+		begin
+			if(uart_out_ready)
+			begin
+				if(uart_out_valid)
+				begin
+					// grab data and stall pipe
+					rx_data <= uart_out_data;
+					uart_out_ready <= 1'b0;
+				end
+			end
+			else
+			begin
+				if(cs & ~we & addr[0])
+				begin
+					// accept data and enable pipe
+					uart_out_ready <= 1'b1;
+				end
+			end
+		end
+	end
+		
+	// transmit to host
+	always @(posedge clk)
+	begin
+		if(rst)
+		begin
+			uart_in_data <= 8'h00;
+			uart_in_valid <= 1'b0;
+		end
+		else
+		begin
+			if(cs & we & addr[0])
+			begin
+				// accept data and enable pipe
+				uart_in_data <= din;
+				uart_in_valid <= 1'b1;
+			end
+			
+			// valid holds until ready
+			if(uart_in_valid & uart_in_ready)
+				uart_in_valid <= 1'b0;
+		end
+	end
+	
+	// CPU READ
+	always @(posedge clk)
+	begin
+		if(rst)
+		begin
+			dout <= 8'h00;
+		end
+		else
+		begin
+			// load dout with either status or receive pipe
+			if(cs & ~we)
+			begin
+				if(addr[0])
+					dout <= rx_data;
+				else
+					dout <= {6'd0,~uart_in_valid,~uart_out_ready};
+			end
+		end
+	end
+`endif
 	
 	// the USB UART device
     wire usb_p_tx;

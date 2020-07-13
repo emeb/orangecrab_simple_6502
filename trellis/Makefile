@@ -3,11 +3,25 @@
 # this version builds the CPU code from C
 
 # src directory
-VPATH = ../src/ ../verilog-6502/
+VPATH = ../src/ ../verilog-6502/ ../tinyfpga_bx_usbserial/usb
 
 SRC =	orangecrab_6502.v ../src/tst_6502.v ../src/acia.v \
 		../verilog-6502/cpu.v ../verilog-6502/ALU.v \
-		../src/acia_rx.v ../src/acia_tx.v
+		../src/acia_rx.v ../src/acia_tx.v ../src/usb_serial.v \
+		../tinyfpga_bx_usbserial/usb/usb_uart_core.v \
+		../tinyfpga_bx_usbserial/usb/edge_detect.v \
+		../tinyfpga_bx_usbserial/usb/serial.v \
+		../tinyfpga_bx_usbserial/usb/usb_fs_pe.v \
+		../tinyfpga_bx_usbserial/usb/usb_fs_in_arb.v \
+		../tinyfpga_bx_usbserial/usb/usb_fs_in_pe.v \
+		../tinyfpga_bx_usbserial/usb/usb_fs_out_arb.v \
+		../tinyfpga_bx_usbserial/usb/usb_fs_out_pe.v \
+		../tinyfpga_bx_usbserial/usb/usb_fs_rx.v \
+		../tinyfpga_bx_usbserial/usb/usb_fs_tx_mux.v \
+		../tinyfpga_bx_usbserial/usb/usb_fs_tx.v \
+		../tinyfpga_bx_usbserial/usb/usb_reset_det.v \
+		../tinyfpga_bx_usbserial/usb/usb_serial_ctrl_ep.v \
+		../tinyfpga_bx_usbserial/usb/usb_uart_bridge_ep.v
 
 # preparing the machine code
 FAKE_HEX =	rom.hex

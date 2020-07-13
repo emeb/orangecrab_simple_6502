@@ -4,12 +4,19 @@
 `default_nettype none
 
 module orangecrab_6502(
+	// 48MHz Oscillator
 	input  CLK,
+	
+	// UART
 	input  RX,
 	output TX,
-	output LED1,
-	output LED2,
-	output LED3
+	
+	// USB
+	inout USB_DP, USB_DM,
+	output USB_PULLUP,
+	
+	// RGB LED
+	output LED1, LED2, LED3
 );
 	// reset generator waits > 10us
 	reg [7:0] reset_cnt;
@@ -37,6 +44,10 @@ module orangecrab_6502(
 		
 		.gpio_o(gpio_o),
 		.gpio_i(gpio_i),
+	
+		.USB_DP(USB_DP),
+		.USB_DM(USB_DM),
+		.USB_PULLUP(USB_PULLUP),
 		
 		.RX(RX),
 		.TX(TX)

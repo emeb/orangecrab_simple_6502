@@ -10,6 +10,9 @@ module tst_6502(
 	output reg [7:0] gpio_o,
 	input [7:0] gpio_i,
 	
+	inout USB_DP, USB_DM,
+	output USB_PULLUP,
+		
 	input RX,				// serial RX
 	output TX				// serial TX
 );
@@ -34,6 +37,7 @@ module tst_6502(
 	wire p0 = (CPU_AB[15:12] == 4'h0) ? 1 : 0;
 	wire p1 = (CPU_AB[15:12] == 4'h1) ? 1 : 0;
 	wire p2 = (CPU_AB[15:12] == 4'h2) ? 1 : 0;
+	wire p3 = (CPU_AB[15:12] == 4'h3) ? 1 : 0;
 	wire pf = (CPU_AB[15:12] == 4'hf) ? 1 : 0;
 	
 	// RAM @ pages 00-0f
@@ -55,6 +59,7 @@ module tst_6502(
 	
 	// ACIA at page 20-2f
 	wire [7:0] acia_do;
+	wire acia_irq;
 	acia uacia(
 		.clk(clk),				// system clock
 		.rst(reset),			// system reset
@@ -65,8 +70,28 @@ module tst_6502(
 		.din(CPU_DO),			// data bus input
 		.dout(acia_do),			// data bus output
 		.tx(TX),				// serial transmit
-		.irq(CPU_IRQ)			// interrupt request
+		.irq(acia_irq)			// interrupt request
 	);
+	
+	// USB Serial device at page 30-3f
+	wire [7:0] usb_do;
+	wire usb_irq;
+	usb_serial uusb(
+		.clk(clk),				// system clock
+		.rst(reset),			// system reset
+		.cs(p3),				// chip select
+		.we(CPU_WE),			// write enable
+		.addr(CPU_AB[2:0]),		// address bus
+		.din(CPU_DO),			// data bus input
+		.dout(usb_do),			// data bus output
+		.USB_DP(USB_DP),		// USB D+
+		.USB_DM(USB_DM),		// USB D-
+		.USB_PULLUP(USB_PULLUP),// USB pullup resistor enable
+		.IRQ(usb_irq)			// Interrupt Request (unused ATM)
+	);
+	
+	// combine IRQs
+	assign CPU_IRQ = acia_irq | usb_irq;
 	
 	// ROM @ pages f0,f1...
     reg [7:0] rom_mem[4095:0];
@@ -85,6 +110,7 @@ module tst_6502(
 			4'h0: CPU_DI = ram_do;
 			4'h1: CPU_DI = gpio_do;
 			4'h2: CPU_DI = acia_do;
+			4'h3: CPU_DI = usb_do;
 			4'hf: CPU_DI = rom_do;
 			default: CPU_DI = rom_do;
 		endcase

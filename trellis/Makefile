@@ -60,12 +60,19 @@ $(REAL_HEX):
 	$(ECPBRAM) -f $(FAKE_HEX) -t $(REAL_HEX) -i $< -o temp.config
 	$(ECPPACK) --compress --freq 38.8 --input temp.config --bit $@
 
+%.svf: %.config $(REAL_HEX)
+	$(ECPBRAM) -f $(FAKE_HEX) -t $(REAL_HEX) -i $< -o temp.config
+	$(ECPPACK) --compress --freq 38.8 --input temp.config --svf $@
+
 %.dfu : %.bit
 	cp $< $@
 	dfu-suffix -v 1209 -p 5af0 -a $@
 
 prog: $(PROJ).dfu
 	sudo dfu-util -D $(PROJ).dfu
+
+jtag: $(PROJ).svf
+	openocd -f openocd_jlink.ocd -c "svf -tap lfe5u25.tap -quiet $(PROJ).svf ; shutdown"
 	
 recode:
 	rm -f $(REAL_HEX) $(PROJ).bit $(PROJ).dfu

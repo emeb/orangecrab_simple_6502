@@ -55,14 +55,15 @@ $(FAKE_HEX):
 $(REAL_HEX):
 	$(MAKE) -C ../cc65/
 	cp ../cc65/$(FAKE_HEX) ./$(REAL_HEX)
-	
-%.bit: %.config $(REAL_HEX)
-	$(ECPBRAM) -f $(FAKE_HEX) -t $(REAL_HEX) -i $< -o temp.config
-	$(ECPPACK) --compress --freq 38.8 --input temp.config --bit $@
 
-%.svf: %.config $(REAL_HEX)
-	$(ECPBRAM) -f $(FAKE_HEX) -t $(REAL_HEX) -i $< -o temp.config
-	$(ECPPACK) --compress --freq 38.8 --input temp.config --svf $@
+%_ram.config : %.config $(REAL_HEX)
+	$(ECPBRAM) -f $(FAKE_HEX) -t $(REAL_HEX) -i $< -o $@
+
+%.bit: %_ram.config
+	$(ECPPACK) --compress --freq 38.8 --input $< --bit $@
+
+%.svf: %_ram.config
+	$(ECPPACK) --compress --freq 38.8 --input $< --svf $@
 
 %.dfu : %.bit
 	cp $< $@
@@ -82,7 +83,7 @@ lint: $(SRC)
 	$(VERILATOR) --lint-only -Wall --top-module $(PROJ) $(TECH_LIB) $(SRC)
 
 clean:
-	rm -f *.json *.config *.rpt *.bit *.dfu *.hex
+	rm -f *.json *.config *.rpt *.bit *.svf *.dfu *.hex
 	$(MAKE) clean -C ../cc65/
 
 .SECONDARY:

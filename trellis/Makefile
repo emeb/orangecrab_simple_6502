@@ -74,10 +74,16 @@ prog: $(PROJ).dfu
 
 jtag: $(PROJ).svf
 	openocd -f openocd_jlink.ocd -c "svf -tap lfe5u25.tap -quiet $(PROJ).svf ; shutdown"
+
+recode: recode_jtag
 	
-recode:
-	rm -f $(REAL_HEX) $(PROJ).bit $(PROJ).dfu
+recode_dfu:
+	rm -f $(REAL_HEX) $(PROJ)_ram.config $(PROJ).bit $(PROJ).dfu
 	$(MAKE) prog
+    
+recode_jtag:
+	rm -f $(REAL_HEX) $(PROJ)_ram.config $(PROJ).svf
+	$(MAKE) jtag
     
 lint: $(SRC)
 	$(VERILATOR) --lint-only -Wall --top-module $(PROJ) $(TECH_LIB) $(SRC)
